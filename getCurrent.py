@@ -7,6 +7,8 @@
 
 import serial
 import argparse
+import signal
+import sys
 
 port = '/dev/ttyUSB0'
 baud = 9600
@@ -44,6 +46,21 @@ cmds.append(':SOUR:VOLT:LEV 0')
 cmds.append(':FORM:ELEM CURR')
 cmds.append(':OUTP ON')
 
+def cleanup(k):
+  cmd = ':OUTP OFF'
+  k.write(cmd.encode('utf-8') + b'\n')
+  k.write(b':SYST:ERR?\n')
+  err = k.readline()
+  print(err)
+
+  k.close()
+
+def signal_handler(signal, frame):
+  print('You pressed Ctrl+C!')
+
+  sys.exit(0) 
+signal.signal(signal.SIGINT, signal_handler) 
+
 for cmd in cmds:
   #print('Sending', cmd)
   cmd = cmd.encode('utf-8') + b'\n'
@@ -62,8 +79,4 @@ while True:
   if not args.continuous:
       break
 
-cmd = ':OUTP OFF'
-k.write(cmd.encode('utf-8') + b'\n')
-#k.write(b':SYST:ERR?\n'); k.readline()
-
-k.close()
+cleanup(k)
