@@ -57,8 +57,9 @@ def cleanup(k):
   k.close()
 
 def signal_handler(signal, frame):
-  #print('You pressed Ctrl+C!')
-  args, _, _, value_dict = inspect.getargvalues(frame)
+  print('You pressed Ctrl+C!')
+  #args, _, _, value_dict = inspect.getargvalues(frame)
+  print (frame.f_locals)
   k = frame.f_locals['k']
   cleanup(k)
 
