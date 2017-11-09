@@ -6,12 +6,17 @@
 # prints current from keithley 24xx connected via serial
 
 import serial
+import argparse
 
 port = '/dev/ttyUSB0'
 baud = 9600
 timeout = 3 # seconds
 
 expectedDeviceString = b'KEITHLEY INSTRUMENTS INC.,MODEL 2410,4090615,C33   Mar 31 2015 09:32:39/A02  /J/K\r\n'
+
+# for cmd line arguments
+parser = argparse.ArgumentParser(description='Reads current from keithley 24xx sourcemeter.')
+args = parser.parse_args()
 
 k = serial.Serial(port,baud,timeout=timeout)
 
