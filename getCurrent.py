@@ -32,8 +32,7 @@ if deviceString == expectedDeviceString:
   #print('Conected to', deviceString.decode("utf-8"))
 else:
   print('ERROR: Got unexpected device string:', deviceString.decode("utf-8"))
-  exit()
-
+  sys.exit(-1)
 
 cmds = []
 
@@ -57,6 +56,7 @@ def cleanup(k):
 
 def signal_handler(signal, frame):
   print('You pressed Ctrl+C!')
+  print(frame)
 
   sys.exit(0) 
 signal.signal(signal.SIGINT, signal_handler) 
@@ -69,6 +69,9 @@ for cmd in cmds:
   #err = k.readline()
   #print(err)
 
+if args.continuous:
+  print('Running continuously forever. Use Ctrl+c to terminate')
+
 while True:
   cmd = ':READ?'
   k.write(cmd.encode('utf-8') + b'\n')
@@ -80,3 +83,5 @@ while True:
       break
 
 cleanup(k)
+
+sys.exit(0)
