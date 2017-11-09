@@ -9,6 +9,8 @@ import serial
 import argparse
 import signal
 import sys
+import time
+import inspect
 
 port = '/dev/ttyUSB0'
 baud = 9600
@@ -55,10 +57,14 @@ def cleanup(k):
   k.close()
 
 def signal_handler(signal, frame):
-  print('You pressed Ctrl+C!')
-  print(frame)
+  #print('You pressed Ctrl+C!')
+  args, _, _, value_dict = inspect.getargvalues(frame)
+  k = frame.f_locals['k']
+  cleanup(k)
 
   sys.exit(0) 
+
+# register handler for ctrl+c cleanup
 signal.signal(signal.SIGINT, signal_handler) 
 
 for cmd in cmds:
@@ -72,6 +78,7 @@ for cmd in cmds:
 if args.continuous:
   print('Running continuously forever. Use Ctrl+c to terminate')
 
+time.sleep(0.2)
 while True:
   cmd = ':READ?'
   k.write(cmd.encode('utf-8') + b'\n')
