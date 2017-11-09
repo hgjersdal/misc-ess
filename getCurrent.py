@@ -50,16 +50,16 @@ cmds.append(':OUTP ON')
 def cleanup(k):
   cmd = ':OUTP OFF'
   k.write(cmd.encode('utf-8') + b'\n')
-  k.write(b':SYST:ERR?\n')
-  err = k.readline()
-  print(err)
-
+  #k.write(b':SYST:ERR?\n')
+  #err = k.readline()
+  #print(err)
   k.close()
 
 def signal_handler(signal, frame):
   #print('You pressed Ctrl+C!')
   #print (frame.f_locals)
-  k = frame.f_locals
+  k = frame.f_locals['self']
+  junk = k.readline()
   cleanup(k)
 
   sys.exit(0) 
