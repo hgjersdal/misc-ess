@@ -16,6 +16,7 @@ expectedDeviceString = b'KEITHLEY INSTRUMENTS INC.,MODEL 2410,4090615,C33   Mar 
 
 # for cmd line arguments
 parser = argparse.ArgumentParser(description='Reads current from keithley 24xx sourcemeter.')
+parser.add_argument('-c','--continuous', dest='continuous', action='store_true', default=False, help="Operate continuously (forever)")
 args = parser.parse_args()
 
 k = serial.Serial(port,baud,timeout=timeout)
@@ -51,11 +52,15 @@ for cmd in cmds:
   #err = k.readline()
   #print(err)
 
-cmd = ':READ?'
-k.write(cmd.encode('utf-8') + b'\n')
-current = float(k.readline().decode('utf-8'))
+while True:
+  cmd = ':READ?'
+  k.write(cmd.encode('utf-8') + b'\n')
+  current = float(k.readline().decode('utf-8'))
 
-print(current)
+  print(current)
+
+  if not args.continuous:
+      break
 
 cmd = ':OUTP OFF'
 k.write(cmd.encode('utf-8') + b'\n')
