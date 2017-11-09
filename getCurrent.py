@@ -57,10 +57,9 @@ def cleanup(k):
   k.close()
 
 def signal_handler(signal, frame):
-  print('You pressed Ctrl+C!')
-  #args, _, _, value_dict = inspect.getargvalues(frame)
-  print (frame.f_locals)
-  k = frame.f_locals['k']
+  #print('You pressed Ctrl+C!')
+  #print (frame.f_locals)
+  k = frame.f_locals
   cleanup(k)
 
   sys.exit(0) 
@@ -79,7 +78,9 @@ for cmd in cmds:
 if args.continuous:
   print('Running continuously forever. Use Ctrl+c to terminate')
 
-time.sleep(0.2)
+# delay aftetr output on
+time.sleep(0.5)
+
 while True:
   cmd = ':READ?'
   k.write(cmd.encode('utf-8') + b'\n')
