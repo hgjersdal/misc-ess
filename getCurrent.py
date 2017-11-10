@@ -2,7 +2,7 @@
 
 # written by grey@christoforo.net
 # on 8 Nov 2017
-
+# adapted by hgjersdal 10 nov 2017
 # prints current from keithley 24xx connected via serial
 
 import serial
