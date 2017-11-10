@@ -18,24 +18,6 @@ timeout = 3 # seconds
 
 expectedDeviceString = b'KEITHLEY INSTRUMENTS INC.,MODEL 2410,4090615,C33   Mar 31 2015 09:32:39/A02  /J/K\r\n'
 
-# for cmd line arguments
-parser = argparse.ArgumentParser(description='Reads current from keithley 24xx sourcemeter.')
-parser.add_argument('-c','--continuous', dest='continuous', action='store_true', default=False, help="Operate continuously (forever)")
-args = parser.parse_args()
-
-k = serial.Serial(port,baud,timeout=timeout)
-
-k.write(b'*RST\n')
-k.write(b'*IDN?\n')
-deviceString = k.readline()
-
-if deviceString == expectedDeviceString:
-  pass
-  #print('Conected to', deviceString.decode("utf-8"))
-else:
-  print('ERROR: Got unexpected device string:', deviceString.decode("utf-8"))
-  sys.exit(-1)
-
 cmds = []
 
 cmds.append(':SOUR:FUNC VOLT')
@@ -47,12 +29,34 @@ cmds.append(':SOUR:VOLT:LEV 0')
 cmds.append(':FORM:ELEM CURR')
 cmds.append(':OUTP ON')
 
+def printError(k):
+  k.write(b':SYST:ERR?\n')
+  err = k.readline()
+  print(err)
+
+def initialize():
+  k = serial.Serial(port,baud,timeout=timeout)
+
+  k.write(b'*RST\n')
+  k.write(b'*IDN?\n')
+  deviceString = k.readline()
+
+  if deviceString == expectedDeviceString:
+    pass
+  else:
+    print('ERROR: Got unexpected device string:', deviceString.decode("utf-8"))
+    raise Exception('Unexpected device string when trying to connect to ' + port)
+
+  for cmd in cmds:
+    #print('Sending', cmd)
+    cmd = cmd.encode('utf-8') + b'\n'
+    k.write(cmd)
+
+  return(k)
+
 def cleanup(k):
   cmd = ':OUTP OFF'
   k.write(cmd.encode('utf-8') + b'\n')
-  #k.write(b':SYST:ERR?\n')
-  #err = k.readline()
-  #print(err)
   k.close()
 
 def signal_handler(signal, frame):
@@ -61,36 +65,47 @@ def signal_handler(signal, frame):
   k = frame.f_locals['self']
   junk = k.readline()
   cleanup(k)
-
   sys.exit(0) 
 
-# register handler for ctrl+c cleanup
-signal.signal(signal.SIGINT, signal_handler) 
+def getNValues(nValues):
+  k = initialize()
+  measurements = []
+  for i in range(nValues):
+    measurements.append( getCurrent() )
+  cleanup(k)
+  return(measurements)
+  
+def getCurrent(k):
+    cmd = ':READ?'
+    k.write(cmd.encode('utf-8') + b'\n')
+    current = float(k.readline().decode('utf-8'))
 
-for cmd in cmds:
-  #print('Sending', cmd)
-  cmd = cmd.encode('utf-8') + b'\n'
-  k.write(cmd)
-  #k.write(b':SYST:ERR?\n')
-  #err = k.readline()
-  #print(err)
+    print(current)
+  
+if __name__ == '__main__':
+  # for cmd line arguments
+  parser = argparse.ArgumentParser(description='Reads current from keithley 24xx sourcemeter.')
+  parser.add_argument('-c','--continuous', dest='continuous', action='store_true', default=False, help="Operate continuously (forever)")
+  args = parser.parse_args()
 
-if args.continuous:
-  print('Running continuously forever. Use Ctrl+c to terminate')
+  k = initialize()
+  
+  # register handler for ctrl+c cleanup
+  signal.signal(signal.SIGINT, signal_handler) 
 
-# delay aftetr output on
-time.sleep(0.5)
+  if args.continuous:
+    print('Running continuously forever. Use Ctrl+c to terminate')
 
-while True:
-  cmd = ':READ?'
-  k.write(cmd.encode('utf-8') + b'\n')
-  current = float(k.readline().decode('utf-8'))
+  # delay aftetr output on
+  time.sleep(0.5)
 
-  print(current)
+  while True:
+    current = getCurrent()
+    print(current)
 
-  if not args.continuous:
+    if not args.continuous:
       break
 
-cleanup(k)
+  cleanup(k)
 
-sys.exit(0)
+  sys.exit(0)
