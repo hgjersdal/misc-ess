@@ -11,8 +11,9 @@ import signal
 import sys
 import time
 import inspect
+import numpy
 
-port = '/dev/ttyUSB0'
+port = '/dev/ttyUSB1'
 baud = 9600
 timeout = 3 # seconds
 
@@ -71,16 +72,23 @@ def getNValues(nValues):
   k = initialize()
   measurements = []
   for i in range(nValues):
-    measurements.append( getCurrent() )
+    measurements.append( getCurrent(k) )
   cleanup(k)
-  return(measurements)
+  return( numpy.array(measurements) )
   
 def getCurrent(k):
-    cmd = ':READ?'
-    k.write(cmd.encode('utf-8') + b'\n')
-    current = float(k.readline().decode('utf-8'))
+  cmd = ':READ?'
+  k.write(cmd.encode('utf-8') + b'\n')
+  current = float(k.readline().decode('utf-8'))
+  return(current)
 
-    print(current)
+def getCurrent():
+  k = initialize()
+  cmd = ':READ?'
+  k.write(cmd.encode('utf-8') + b'\n')
+  current = float(k.readline().decode('utf-8'))
+  cleanup(k)
+  return(current)
   
 if __name__ == '__main__':
   # for cmd line arguments
@@ -100,7 +108,7 @@ if __name__ == '__main__':
   time.sleep(0.5)
 
   while True:
-    current = getCurrent()
+    current = getCurrent(k)
     print(current)
 
     if not args.continuous:
