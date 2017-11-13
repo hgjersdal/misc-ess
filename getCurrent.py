@@ -82,14 +82,7 @@ def getCurrent(k):
   current = float(k.readline().decode('utf-8'))
   return(current)
 
-def getCurrent():
-  k = initialize()
-  cmd = ':READ?'
-  k.write(cmd.encode('utf-8') + b'\n')
-  current = float(k.readline().decode('utf-8'))
-  cleanup(k)
-  return(current)
-  
+
 if __name__ == '__main__':
   # for cmd line arguments
   parser = argparse.ArgumentParser(description='Reads current from keithley 24xx sourcemeter.')
